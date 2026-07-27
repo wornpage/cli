@@ -1,0 +1,15 @@
+{
+  "name": "@wornpage/cli",
+  "version": "0.1.0",
+  "description": "CLI for creating, building, and publishing @wornpage Svelte 5 components",
+  "type": "module",
+  "main": "./src/index.ts",
+  "bin": { "wornpage": "./src/index.ts" },
+  "scripts": { "test": "bun test" },
+  "dependencies": {
+    "commander": "^13.1.0"
+  },
+  "peerDependencies": { "bun": ">=1.0.0" },
+  "keywords": ["wornpage", "svelte", "cli", "scaffold", "component"],
+  "license": "MIT"
+}
