@@ -1,0 +1,78 @@
+# Component Delivery
+
+This is the release contract for every standalone `@wornpage/*` staging repository.
+
+## One implementation
+
+`src/` is the only authored implementation. Change code there.
+
+`dist/` is not another source tree. It is committed generated output only when a package must support direct browser use without a Svelte build step. Never edit it by hand.
+
+Every package declares one mode in `package.json`:
+
+```json
+{
+  "wornpage": {
+    "contractVersion": 1,
+    "delivery": "source"
+  }
+}
+```
+
+| Mode | Use it when | Runtime entry | `dist/` | Required proof |
+| --- | --- | --- | --- | --- |
+| `source` | Consumers compile the package | `./src/...` | Forbidden | tests and packed entries |
+| `browser-bundle` | A plain `<script type="module">` consumer is supported | `./dist/...` | Generated and committed | tests, reproducible build, consuming `index.html`, and packed entries |
+
+Default to `source`. Add a browser bundle only for a real direct-browser consumer. A documentation screenshot or package test is not enough reason to maintain a second delivery artifact.
+
+## Package entries
+
+For a Svelte package with a browser bundle:
+
+- `exports["."].svelte` points to `src/` for Svelte-aware consumers.
+- `exports["."].default` and `main` point to the generated browser file in `dist/`.
+- `files` includes both `src` and `dist`.
+
+For a source-only package, the runtime and source entries both point into `src/`, and `files` must not include `dist`.
+
+The declaration states intent. `wornpage verify` cross-checks that intent against the entries, files, build, demo, actual `npm pack` result, and the repository's shared release-workflow caller so duplicated metadata cannot silently drift.
+
+## Local documentation
+
+Every component README includes a short, versioned Delivery section. It states the canonical source and whether `dist/` exists, so a maintainer does not need to infer the rule from export conditions. `wornpage verify` requires that section to match `package.json#wornpage.delivery`, and `wornpage new` adds it to new components automatically.
+
+The package declaration is authoritative; the README section is its human-facing projection. Component-specific behavior and usage stay in the rest of the README instead of being duplicated in the shared contract.
+
+## Release path
+
+1. Edit `src/` and package-specific tests.
+2. Run `bun run test`.
+3. For `browser-bundle`, run `bun run build` and review the generated `dist/` diff.
+4. Run `bunx @wornpage/cli verify --frozen-dist`.
+5. Push the standalone component repository.
+6. Update the full Git commit pin and sole package lock in the consuming app.
+7. Run the consuming app's component import gate, type check, and production build.
+
+The component CI performs step 4 through the reusable release workflow. Projects uses `npm --prefix svelte-frontend run check:components` for step 7. That consumer gate rejects a floating or mismatched GitHub revision, a deep import, or a missing Svelte source entry before the app build supplies the final integration proof. Component tests cannot prove dependency resolution or app compatibility.
+
+From the staging parent, verify every standalone package with one command:
+
+```sh
+wornpage verify C:/jkbSoft/wornpage-staging --all --frozen-dist
+```
+
+This discovers each standalone `@wornpage/*` repository and prints its declared source and runtime entries. A new component cannot pass until it declares and satisfies the same contract, including CI enforcement.
+
+## Monorepo mirror
+
+`wornpage/wornpage/packages/` is a generated browsing and cross-package test
+mirror. It is not published and no consumer installs from it. The standalone
+repositories remain canonical, and `bun run sync` replaces the mirror from
+their GitHub heads while omitting generated `dist/` output.
+
+The mirror workflow runs `bun run sync --check` on pushes, pull requests, and a
+daily schedule. A mirror mismatch therefore fails explicitly instead of
+creating another plausible source tree. Fix drift by shipping the standalone
+repository first, then running `bun run sync` and committing the generated
+mirror update.

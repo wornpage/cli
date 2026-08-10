@@ -1,6 +1,12 @@
 import { createHash } from 'node:crypto';
 import { access, readFile, readdir } from 'node:fs/promises';
 import { relative, resolve, sep } from 'node:path';
+import {
+  DELIVERY_CONTRACT_VERSION,
+  DELIVERY_WORKFLOW_REFERENCE,
+  renderDeliveryReadmeSection,
+  type DeliveryDeclaration,
+} from '../delivery.ts';
 
 type PackageJson = {
   name?: string;
@@ -11,6 +17,10 @@ type PackageJson = {
   scripts?: Record<string, string>;
   bin?: string | Record<string, string>;
   workspaces?: unknown;
+  wornpage?: {
+    contractVersion?: unknown;
+    delivery?: unknown;
+  };
 };
 
 export type DeliveryMode = 'source' | 'bundle';
@@ -99,6 +109,47 @@ export async function inspectPackage(directory = '.'): Promise<PackageContract> 
     ([exportedDefault, pkg.main].find((entry) => entry?.replace(/^\.\//, '').startsWith('src/')));
   const runtimeEntry = exportedDefault ?? pkg.main ?? sourceEntry;
 
+  if (pkg.wornpage?.contractVersion !== DELIVERY_CONTRACT_VERSION) {
+    issues.push(`Declare package.json#wornpage.contractVersion as ${DELIVERY_CONTRACT_VERSION}.`);
+  }
+  const deliveryDeclaration: DeliveryDeclaration | undefined = pkg.wornpage?.delivery === 'source'
+    ? 'source'
+    : pkg.wornpage?.delivery === 'browser-bundle'
+      ? 'browser-bundle'
+      : undefined;
+  const declaredMode: DeliveryMode | undefined = deliveryDeclaration === 'source'
+    ? 'source'
+    : deliveryDeclaration === 'browser-bundle'
+      ? 'bundle'
+      : undefined;
+  if (!declaredMode) {
+    issues.push('Declare package.json#wornpage.delivery as "source" or "browser-bundle".');
+  }
+
+  const readmePath = resolve(root, 'README.md');
+  if (!(await exists(readmePath))) {
+    issues.push('Add README.md with the component delivery section.');
+  } else if (deliveryDeclaration) {
+    const readme = await readFile(readmePath, 'utf8');
+    const expectedSection = renderDeliveryReadmeSection(deliveryDeclaration);
+    if (!readme.includes(expectedSection)) {
+      issues.push(`README.md must include the v${DELIVERY_CONTRACT_VERSION} ${deliveryDeclaration} delivery section.`);
+    }
+  }
+
+  const workflowPath = resolve(root, '.github', 'workflows', 'release-contract.yml');
+  if (!(await exists(workflowPath))) {
+    issues.push('Add .github/workflows/release-contract.yml to enforce this contract on pushes and pull requests.');
+  } else {
+    const workflow = (await readFile(workflowPath, 'utf8')).replaceAll('\r\n', '\n');
+    if (!workflow.includes(`uses: ${DELIVERY_WORKFLOW_REFERENCE}`)) {
+      issues.push(`The release workflow must call ${DELIVERY_WORKFLOW_REFERENCE}.`);
+    }
+    if (!/^\s{2}push:\s*$/mu.test(workflow) || !/^\s{2}pull_request:\s*$/mu.test(workflow)) {
+      issues.push('The release workflow must run on both push and pull_request.');
+    }
+  }
+
   if (!sourceEntry) issues.push('Declare the canonical source entry with exports["."].svelte or package.json#svelte.');
   if (!runtimeEntry) issues.push('Declare the consumer runtime entry with exports["."].default or package.json#main.');
 
@@ -115,7 +166,12 @@ export async function inspectPackage(directory = '.'): Promise<PackageContract> 
   }
 
   const runtimePath = runtimeEntry ? normalizeEntry(runtimeEntry) : '';
-  const mode: DeliveryMode = runtimePath.startsWith('dist/') ? 'bundle' : 'source';
+  const runtimeMode: DeliveryMode = runtimePath.startsWith('dist/') ? 'bundle' : 'source';
+  if (declaredMode && declaredMode !== runtimeMode) {
+    const declaredDelivery = declaredMode === 'bundle' ? 'browser-bundle' : 'source';
+    issues.push(`package.json#wornpage.delivery declares ${declaredDelivery}, but the runtime entry is ${runtimeEntry}.`);
+  }
+  const mode = declaredMode ?? runtimeMode;
   if (runtimePath && !runtimePath.startsWith('src/') && !runtimePath.startsWith('dist/')) {
     issues.push(`The runtime entry must be under src/ or dist/: ${runtimeEntry}`);
   }
@@ -149,6 +205,11 @@ export async function inspectPackage(directory = '.'): Promise<PackageContract> 
     issues.push('Bundled packages must declare package.json#scripts.build.');
   }
 
+  const distPath = resolve(root, 'dist');
+  if (mode === 'source' && await exists(distPath)) {
+    issues.push('Source-only packages must not contain a dist/ directory.');
+  }
+
   if (sourceEntry && !(await exists(packagePath(root, sourceEntry)))) {
     issues.push(`The source entry does not exist: ${displayEntry(sourceEntry)}.`);
   }
@@ -166,6 +227,8 @@ export async function inspectPackage(directory = '.'): Promise<PackageContract> 
         issues.push(`index.html must load the declared browser bundle ${displayEntry(runtimeEntry)}.`);
       }
     }
+  } else if (mode === 'bundle') {
+    issues.push('Browser-bundle packages must include an index.html that loads the declared bundle.');
   }
 
   if (issues.length > 0) {
@@ -274,6 +337,7 @@ export async function verifyPackage(directory = '.', options: VerifyOptions = {}
 
 function printContract(contract: PackageContract, options: VerifyOptions) {
   console.log(`\nVerified ${contract.name}`);
+  console.log('  contract: v1');
   console.log(`  delivery: ${contract.mode === 'bundle' ? 'source + generated browser bundle' : 'source only'}`);
   console.log(`  source:   ${contract.sourceEntry}`);
   console.log(`  runtime:  ${contract.runtimeEntry}`);
