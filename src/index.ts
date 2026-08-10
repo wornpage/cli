@@ -24,11 +24,24 @@ program
   });
 
 program
+  .command('verify [directory]')
+  .description('Verify a component source, bundle, demo, and packed exports')
+  .option('--frozen-dist', 'fail when the build changes committed dist files')
+  .option('--all', 'verify every standalone @wornpage package directly under directory')
+  .action(async (directory: string | undefined, options: { frozenDist?: boolean; all?: boolean }) => {
+    const { default: verifyCmd } = await import('./commands/verify.ts');
+    await verifyCmd(directory ?? '.', { frozenDist: options.frozenDist, all: options.all });
+  });
+
+program
   .command('ship')
-  .description('Build, bump version, and publish')
+  .description('Verify, bump version, and publish')
   .action(async () => {
     const { default: shipCmd } = await import('./commands/ship.ts');
     await shipCmd();
   });
 
-program.parse();
+program.parseAsync().catch((error) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+});

@@ -25,10 +25,10 @@ export default async function newCommand(name: string) {
       main: './src/index.ts',
       svelte: './src/index.ts',
       exports: {
-        '.': { types: './src/index.ts', svelte: './src/index.ts', default: `./src/Worn${Cap}.svelte` }
+        '.': { types: './src/index.ts', svelte: './src/index.ts', default: './src/index.ts' }
       },
       peerDependencies: { svelte: '^5.0.0' },
-      files: ['src/', 'dist/'],
+      files: ['src'],
       keywords: ['svelte', name, 'wornpage'],
       license: 'MIT'
     }, null, 2) + '\n',
@@ -66,7 +66,7 @@ describe('Worn${Cap}', () => {
 });
 `,
 
-    '.gitignore': 'node_modules/\ndist/*.map\n',
+    '.gitignore': 'node_modules/\n',
   };
 
   for (const [filepath, content] of Object.entries(files)) {
@@ -75,5 +75,5 @@ describe('Worn${Cap}', () => {
   }
 
   console.log(`\nScaffolded ${Object.keys(files).length} files.\n`);
-  console.log(`Next: cd wornpage-${name} && wornpage ship`);
+  console.log(`Next: cd wornpage-${name} && wornpage verify`);
 }

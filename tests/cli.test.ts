@@ -11,6 +11,7 @@ describe("@wornpage/cli", () => {
     const result = await $`bun run ${CLI} --help`.quiet();
     expect(result.stdout.toString()).toContain("wornpage");
     expect(result.stdout.toString()).toContain("new");
+    expect(result.stdout.toString()).toContain("verify");
     expect(result.stdout.toString()).toContain("ship");
   });
 
@@ -36,6 +37,9 @@ describe("@wornpage/cli", () => {
     expect(pkg.name).toBe("@wornpage/testbox");
     expect(pkg.version).toBe("0.1.0");
     expect(pkg.peerDependencies.svelte).toBeDefined();
+    expect(pkg.main).toBe("./src/index.ts");
+    expect(pkg.exports["."].default).toBe("./src/index.ts");
+    expect(pkg.files).toEqual(["src"]);
 
     rmSync(targetDir, { recursive: true });
   });
