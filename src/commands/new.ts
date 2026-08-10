@@ -1,6 +1,11 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { renderDeliveryReadmeSection, renderDeliveryWorkflow } from '../delivery.ts';
+import {
+  DELIVERY_CONTRACT_VERSION,
+  DELIVERY_GIT_ATTRIBUTES,
+  renderDeliveryReadmeSection,
+  renderDeliveryWorkflow,
+} from '../delivery.ts';
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -45,7 +50,7 @@ bun add @wornpage/${name}
       version: '0.1.0',
       description: `Svelte 5 ${name} component`,
       type: 'module',
-      wornpage: { contractVersion: 1, delivery: 'source' },
+      wornpage: { contractVersion: DELIVERY_CONTRACT_VERSION, delivery: 'source' },
       scripts: { test: 'bun test' },
       main: './src/index.ts',
       svelte: './src/index.ts',
@@ -94,6 +99,8 @@ describe('Worn${Cap}', () => {
 `,
 
     '.github/workflows/release-contract.yml': renderDeliveryWorkflow(),
+
+    '.gitattributes': DELIVERY_GIT_ATTRIBUTES,
 
     '.gitignore': 'node_modules/\n',
   };

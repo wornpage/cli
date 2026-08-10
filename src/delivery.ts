@@ -1,6 +1,7 @@
-export const DELIVERY_CONTRACT_VERSION = 1;
+export const DELIVERY_CONTRACT_VERSION = 2;
 export const DELIVERY_WORKFLOW_REFERENCE =
   'wornpage/cli/.github/workflows/component-release-contract.yml@master';
+export const DELIVERY_GIT_ATTRIBUTES = '* text=auto eol=lf\n';
 
 export type DeliveryDeclaration = 'source' | 'browser-bundle';
 
@@ -27,6 +28,8 @@ export function renderDeliveryReadmeSection(delivery: DeliveryDeclaration): stri
     '## Delivery',
     '',
     description,
+    '',
+    'Repository text is checked out as LF through `.gitattributes`, so generated output is byte-stable across Windows and Linux.',
     '',
     'The shared [component delivery contract](https://github.com/wornpage/cli/blob/master/docs/component-delivery.md) checks this declaration, package exports, packed files, and generated output on every push and pull request.',
     '<!-- /wornpage-delivery -->',

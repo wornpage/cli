@@ -2,7 +2,12 @@ import { afterEach, describe, expect, it, setDefaultTimeout } from 'bun:test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { findComponentPackages, inspectPackage, verifyPackage } from '../src/commands/verify.ts';
-import { renderDeliveryReadmeSection, renderDeliveryWorkflow } from '../src/delivery.ts';
+import {
+  DELIVERY_CONTRACT_VERSION,
+  DELIVERY_GIT_ATTRIBUTES,
+  renderDeliveryReadmeSection,
+  renderDeliveryWorkflow,
+} from '../src/delivery.ts';
 
 const TMP = join(import.meta.dir, '..', '.verify-tmp');
 setDefaultTimeout(30_000);
@@ -13,17 +18,22 @@ async function writeReleaseWorkflow(root: string) {
   await writeFile(join(workflowDirectory, 'release-contract.yml'), renderDeliveryWorkflow());
 }
 
+async function writeDeliveryAttributes(root: string) {
+  await writeFile(join(root, '.gitattributes'), DELIVERY_GIT_ATTRIBUTES);
+}
+
 async function makeSourcePackage(name: string) {
   const root = join(TMP, name);
   await mkdir(join(root, 'src'), { recursive: true });
   await writeFile(join(root, 'src', 'index.ts'), 'export const component = true;\n');
   await writeFile(join(root, 'README.md'), `# Source fixture\n\n${renderDeliveryReadmeSection('source')}\n`);
   await writeReleaseWorkflow(root);
+  await writeDeliveryAttributes(root);
   await writeFile(join(root, 'package.json'), JSON.stringify({
     name: `@wornpage/${name}`,
     version: '1.0.0',
     type: 'module',
-    wornpage: { contractVersion: 1, delivery: 'source' },
+    wornpage: { contractVersion: DELIVERY_CONTRACT_VERSION, delivery: 'source' },
     scripts: { test: 'bun -e "process.exit(0)"' },
     main: './src/index.ts',
     svelte: './src/index.ts',
@@ -41,6 +51,7 @@ async function makeBundlePackage(name: string, distContent: string) {
   await writeFile(join(root, 'dist', 'widget.js'), distContent);
   await writeFile(join(root, 'README.md'), `# Bundle fixture\n\n${renderDeliveryReadmeSection('browser-bundle')}\n`);
   await writeReleaseWorkflow(root);
+  await writeDeliveryAttributes(root);
   await writeFile(join(root, 'build.ts'), [
     "import { mkdir, writeFile } from 'node:fs/promises';",
     "await mkdir('dist', { recursive: true });",
@@ -51,7 +62,7 @@ async function makeBundlePackage(name: string, distContent: string) {
     name: `@wornpage/${name}`,
     version: '1.0.0',
     type: 'module',
-    wornpage: { contractVersion: 1, delivery: 'browser-bundle' },
+    wornpage: { contractVersion: DELIVERY_CONTRACT_VERSION, delivery: 'browser-bundle' },
     scripts: { test: 'bun -e "process.exit(0)"', build: 'bun run build.ts' },
     main: './dist/widget.js',
     svelte: './src/index.ts',
@@ -93,6 +104,13 @@ describe('component release contract', () => {
 
     await expect(inspectPackage(root)).rejects.toThrow('wornpage.contractVersion');
     await expect(inspectPackage(root)).rejects.toThrow('wornpage.delivery');
+  });
+
+  it('rejects packages without deterministic text checkout rules', async () => {
+    const root = await makeSourcePackage('attributes-fixture');
+    await rm(join(root, '.gitattributes'));
+
+    await expect(inspectPackage(root)).rejects.toThrow('.gitattributes');
   });
 
   it('rejects a delivery declaration that disagrees with the runtime export', async () => {

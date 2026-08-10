@@ -11,7 +11,7 @@ Each repository declares its mode in `package.json`; this is the local, machine-
 ```json
 {
   "wornpage": {
-    "contractVersion": 1,
+    "contractVersion": 2,
     "delivery": "source"
   }
 }
@@ -28,7 +28,7 @@ Each component README also carries a short, versioned Delivery section generated
 
 `wornpage verify` enforces the same contract in every repository. It:
 
-1. Checks the versioned delivery declaration and matching local README section.
+1. Checks the versioned delivery declaration, deterministic `.gitattributes`, and matching local README section.
 2. Rejects undeclared `dist/` behavior.
 3. Checks that `main`, `svelte`, and root `exports` agree.
 4. Checks that source, runtime, and type entries exist and are included by `files`.

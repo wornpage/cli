@@ -3,6 +3,7 @@ import { access, readFile, readdir } from 'node:fs/promises';
 import { relative, resolve, sep } from 'node:path';
 import {
   DELIVERY_CONTRACT_VERSION,
+  DELIVERY_GIT_ATTRIBUTES,
   DELIVERY_WORKFLOW_REFERENCE,
   renderDeliveryReadmeSection,
   type DeliveryDeclaration,
@@ -124,6 +125,16 @@ export async function inspectPackage(directory = '.'): Promise<PackageContract> 
       : undefined;
   if (!declaredMode) {
     issues.push('Declare package.json#wornpage.delivery as "source" or "browser-bundle".');
+  }
+
+  const attributesPath = resolve(root, '.gitattributes');
+  if (!(await exists(attributesPath))) {
+    issues.push('Add .gitattributes so component text is checked out with deterministic LF endings.');
+  } else {
+    const attributes = (await readFile(attributesPath, 'utf8')).replaceAll('\r\n', '\n');
+    if (!attributes.split('\n').includes(DELIVERY_GIT_ATTRIBUTES.trim())) {
+      issues.push(`.gitattributes must include "${DELIVERY_GIT_ATTRIBUTES.trim()}".`);
+    }
   }
 
   const readmePath = resolve(root, 'README.md');
@@ -337,7 +348,7 @@ export async function verifyPackage(directory = '.', options: VerifyOptions = {}
 
 function printContract(contract: PackageContract, options: VerifyOptions) {
   console.log(`\nVerified ${contract.name}`);
-  console.log('  contract: v1');
+  console.log(`  contract: v${DELIVERY_CONTRACT_VERSION}`);
   console.log(`  delivery: ${contract.mode === 'bundle' ? 'source + generated browser bundle' : 'source only'}`);
   console.log(`  source:   ${contract.sourceEntry}`);
   console.log(`  runtime:  ${contract.runtimeEntry}`);

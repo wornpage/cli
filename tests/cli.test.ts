@@ -35,12 +35,13 @@ describe("@wornpage/cli", () => {
     expect(existsSync(join(targetDir, "src", "index.ts"))).toBe(true);
     expect(existsSync(join(targetDir, "tests", "component.test.ts"))).toBe(true);
     expect(existsSync(join(targetDir, ".github", "workflows", "release-contract.yml"))).toBe(true);
+    expect(readFileSync(join(targetDir, ".gitattributes"), "utf-8")).toBe("* text=auto eol=lf\n");
     expect(existsSync(join(targetDir, "bun.lock"))).toBe(true);
 
     const pkg = JSON.parse(readFileSync(join(targetDir, "package.json"), "utf-8"));
     expect(pkg.name).toBe("@wornpage/testbox");
     expect(pkg.version).toBe("0.1.0");
-    expect(pkg.wornpage).toEqual({ contractVersion: 1, delivery: "source" });
+    expect(pkg.wornpage).toEqual({ contractVersion: 2, delivery: "source" });
     expect(pkg.peerDependencies.svelte).toBeDefined();
     expect(pkg.devDependencies.svelte).toBe(pkg.peerDependencies.svelte);
     expect(pkg.main).toBe("./src/index.ts");
@@ -51,7 +52,7 @@ describe("@wornpage/cli", () => {
     expect(workflow).toContain("uses: wornpage/cli/.github/workflows/component-release-contract.yml@master");
 
     const readme = readFileSync(join(targetDir, "README.md"), "utf-8");
-    expect(readme).toContain("<!-- wornpage-delivery:v1 source -->");
+    expect(readme).toContain("<!-- wornpage-delivery:v2 source -->");
     expect(readme).toContain("This package is source-only");
 
     const verification = await $`bun run ${CLI} verify ${targetDir} --frozen-dist`.quiet();
