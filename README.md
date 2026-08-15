@@ -46,7 +46,7 @@ bunx @wornpage/cli verify --frozen-dist
 From the staging parent, audit every standalone package with one command. Discovery includes scoped `@wornpage/*` package repositories and excludes CLI tooling and workspace mirrors:
 
 ```sh
-wornpage verify C:/jkbSoft/wornpage-staging --all --frozen-dist
+wornpage verify . --all --frozen-dist
 ```
 
 If that command reports stale files, run `bun run build`, review the generated `dist/` change, and commit it with the source change. Source-only packages do not carry an empty or speculative `dist/` directory.

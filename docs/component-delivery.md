@@ -69,7 +69,7 @@ The component CI performs step 4 through the reusable release workflow. Projects
 From the staging parent, verify every standalone package with one command:
 
 ```sh
-wornpage verify C:/jkbSoft/wornpage-staging --all --frozen-dist
+wornpage verify . --all --frozen-dist
 ```
 
 This discovers each standalone `@wornpage/*` repository and prints its declared source and runtime entries. A new component cannot pass until it declares and satisfies the same contract, including CI enforcement.
