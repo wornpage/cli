@@ -39,8 +39,10 @@ Each component README also carries a short, versioned Delivery section generated
 
 Use the frozen check in CI and before committing a release:
 
+From a pinned checkout of this repository:
+
 ```sh
-bunx @wornpage/cli verify --frozen-dist
+bun run src/index.ts verify --frozen-dist
 ```
 
 From the staging parent, audit every standalone package with one command. Discovery includes scoped `@wornpage/*` package repositories and excludes CLI tooling and workspace mirrors:

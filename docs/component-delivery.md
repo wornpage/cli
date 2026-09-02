@@ -59,7 +59,7 @@ The package declaration is authoritative; the README section is its human-facing
 1. Edit `src/` and package-specific tests.
 2. Run `bun run test`.
 3. For `browser-bundle`, build from an LF-normalized checkout with `bun run build` and review the generated `dist/` diff.
-4. Run `bunx @wornpage/cli verify --frozen-dist`.
+4. From a pinned checkout of the CLI, run `bun run src/index.ts verify <component-directory> --frozen-dist`.
 5. Push the standalone component repository.
 6. Update the full Git commit pin and sole package lock in the consuming app.
 7. Run the consuming app's component import gate, type check, and production build.
