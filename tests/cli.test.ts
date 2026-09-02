@@ -49,7 +49,7 @@ describe("@wornpage/cli", () => {
     expect(pkg.files).toEqual(["src"]);
 
     const workflow = readFileSync(join(targetDir, ".github", "workflows", "release-contract.yml"), "utf-8");
-    expect(workflow).toContain("uses: wornpage/cli/.github/workflows/component-release-contract.yml@9a6a0e085d137c436842096c106c5a50100cc7b2");
+    expect(workflow).toContain("uses: wornpage/cli/.github/workflows/component-release-contract.yml@05e83e31275593d1b56dd931cb0b182dd9e19da8");
 
     const readme = readFileSync(join(targetDir, "README.md"), "utf-8");
     expect(readme).toContain("<!-- wornpage-delivery:v2 source -->");

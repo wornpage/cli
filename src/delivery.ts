@@ -1,6 +1,6 @@
 export const DELIVERY_CONTRACT_VERSION = 2;
 export const DELIVERY_CONTRACT_REVISION =
-  '9a6a0e085d137c436842096c106c5a50100cc7b2';
+  '05e83e31275593d1b56dd931cb0b182dd9e19da8';
 export const DELIVERY_WORKFLOW_PREFIX =
   'wornpage/cli/.github/workflows/component-release-contract.yml@';
 export const DELIVERY_WORKFLOW_REFERENCE =

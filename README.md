@@ -65,7 +65,7 @@ repositories contain only the trigger below:
 ```yaml
 jobs:
   release-contract:
-    uses: wornpage/cli/.github/workflows/component-release-contract.yml@9a6a0e085d137c436842096c106c5a50100cc7b2
+    uses: wornpage/cli/.github/workflows/component-release-contract.yml@05e83e31275593d1b56dd931cb0b182dd9e19da8
 ```
 
 The immutable reference keeps reviewed policy centralized without trusting a
