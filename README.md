@@ -65,11 +65,12 @@ repositories contain only the trigger below:
 ```yaml
 jobs:
   release-contract:
-    uses: wornpage/cli/.github/workflows/component-release-contract.yml@master
+    uses: wornpage/cli/.github/workflows/component-release-contract.yml@9a6a0e085d137c436842096c106c5a50100cc7b2
 ```
 
-This keeps policy centralized while each repository remains independently
-buildable and publishable.
+The immutable reference keeps reviewed policy centralized without trusting a
+mutable branch. Update it deliberately when a newer verifier revision has been
+reviewed.
 
 ## Commands
 
