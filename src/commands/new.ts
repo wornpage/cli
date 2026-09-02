@@ -40,8 +40,10 @@ ${renderDeliveryReadmeSection('source')}
 
 ## Install
 
+Replace \`FULL_COMMIT_SHA\` with a reviewed 40-character commit from this repository.
+
 \`\`\`bash
-bun add @wornpage/${name}
+bun add "https://codeload.github.com/wornpage/${name}/tar.gz/FULL_COMMIT_SHA"
 \`\`\`
 `,
 

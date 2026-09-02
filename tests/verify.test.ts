@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, setDefaultTimeout } from 'bun:test';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { findComponentPackages, inspectPackage, verifyPackage } from '../src/commands/verify.ts';
 import {
@@ -142,6 +142,17 @@ describe('component release contract', () => {
     await rm(join(root, '.github'), { recursive: true });
 
     await expect(inspectPackage(root)).rejects.toThrow('release-contract.yml');
+  });
+
+  it('accepts any immutable CLI workflow revision and rejects mutable refs', async () => {
+    const root = await makeSourcePackage('immutable-workflow-fixture');
+    const workflowPath = join(root, '.github', 'workflows', 'release-contract.yml');
+    const generated = await readFile(workflowPath, 'utf8');
+    await writeFile(workflowPath, generated.replace(/@[0-9a-f]{40}/u, `@${'f'.repeat(40)}`));
+    expect((await inspectPackage(root)).name).toBe('@wornpage/immutable-workflow-fixture');
+
+    await writeFile(workflowPath, generated.replace(/@[0-9a-f]{40}/u, '@master'));
+    await expect(inspectPackage(root)).rejects.toThrow('<full-lowercase-commit-sha>');
   });
 
   it('detects stale bundles and accepts a reproducible rebuild', async () => {

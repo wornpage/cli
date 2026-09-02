@@ -39,8 +39,10 @@ Each component README also carries a short, versioned Delivery section generated
 
 Use the frozen check in CI and before committing a release:
 
+From a pinned checkout of this repository:
+
 ```sh
-bunx @wornpage/cli verify --frozen-dist
+bun run src/index.ts verify --frozen-dist
 ```
 
 From the staging parent, audit every standalone package with one command. Discovery includes scoped `@wornpage/*` package repositories and excludes CLI tooling and workspace mirrors:
@@ -63,11 +65,12 @@ repositories contain only the trigger below:
 ```yaml
 jobs:
   release-contract:
-    uses: wornpage/cli/.github/workflows/component-release-contract.yml@master
+    uses: wornpage/cli/.github/workflows/component-release-contract.yml@05e83e31275593d1b56dd931cb0b182dd9e19da8
 ```
 
-This keeps policy centralized while each repository remains independently
-buildable and publishable.
+The immutable reference keeps reviewed policy centralized without trusting a
+mutable branch. Update it deliberately when a newer verifier revision has been
+reviewed.
 
 ## Commands
 

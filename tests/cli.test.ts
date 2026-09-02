@@ -49,11 +49,13 @@ describe("@wornpage/cli", () => {
     expect(pkg.files).toEqual(["src"]);
 
     const workflow = readFileSync(join(targetDir, ".github", "workflows", "release-contract.yml"), "utf-8");
-    expect(workflow).toContain("uses: wornpage/cli/.github/workflows/component-release-contract.yml@master");
+    expect(workflow).toContain("uses: wornpage/cli/.github/workflows/component-release-contract.yml@05e83e31275593d1b56dd931cb0b182dd9e19da8");
 
     const readme = readFileSync(join(targetDir, "README.md"), "utf-8");
     expect(readme).toContain("<!-- wornpage-delivery:v2 source -->");
     expect(readme).toContain("This package is source-only");
+    expect(readme).toContain("https://codeload.github.com/wornpage/testbox/tar.gz/FULL_COMMIT_SHA");
+    expect(readme).not.toContain("bun add @wornpage/testbox");
 
     const verification = await $`bun run ${CLI} verify ${targetDir} --frozen-dist`.quiet();
     expect(verification.exitCode).toBe(0);
@@ -101,5 +103,8 @@ describe("@wornpage/cli", () => {
     expect(workflow).toContain("workflow_call:");
     expect(workflow).toContain("bun install --frozen-lockfile");
     expect(workflow).toContain("verify . --frozen-dist");
+    expect(workflow).toContain("repository: ${{ job.workflow_repository }}");
+    expect(workflow).toContain("ref: ${{ job.workflow_sha }}");
+    expect(workflow).not.toMatch(/uses: [^\s]+@(?:master|main|v\d+)$/mu);
   });
 });

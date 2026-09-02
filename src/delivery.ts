@@ -1,6 +1,10 @@
 export const DELIVERY_CONTRACT_VERSION = 2;
+export const DELIVERY_CONTRACT_REVISION =
+  '05e83e31275593d1b56dd931cb0b182dd9e19da8';
+export const DELIVERY_WORKFLOW_PREFIX =
+  'wornpage/cli/.github/workflows/component-release-contract.yml@';
 export const DELIVERY_WORKFLOW_REFERENCE =
-  'wornpage/cli/.github/workflows/component-release-contract.yml@master';
+  `${DELIVERY_WORKFLOW_PREFIX}${DELIVERY_CONTRACT_REVISION}`;
 export const DELIVERY_GIT_ATTRIBUTES = '* text=auto eol=lf\n';
 
 export type DeliveryDeclaration = 'source' | 'browser-bundle';

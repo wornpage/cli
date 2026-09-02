@@ -4,7 +4,7 @@ import { relative, resolve, sep } from 'node:path';
 import {
   DELIVERY_CONTRACT_VERSION,
   DELIVERY_GIT_ATTRIBUTES,
-  DELIVERY_WORKFLOW_REFERENCE,
+  DELIVERY_WORKFLOW_PREFIX,
   renderDeliveryReadmeSection,
   type DeliveryDeclaration,
 } from '../delivery.ts';
@@ -153,8 +153,10 @@ export async function inspectPackage(directory = '.'): Promise<PackageContract> 
     issues.push('Add .github/workflows/release-contract.yml to enforce this contract on pushes and pull requests.');
   } else {
     const workflow = (await readFile(workflowPath, 'utf8')).replaceAll('\r\n', '\n');
-    if (!workflow.includes(`uses: ${DELIVERY_WORKFLOW_REFERENCE}`)) {
-      issues.push(`The release workflow must call ${DELIVERY_WORKFLOW_REFERENCE}.`);
+    const cliReferences = [...workflow.matchAll(/^\s+uses:\s*(wornpage\/cli\/\.github\/workflows\/component-release-contract\.yml@\S+)\s*$/gmu)]
+      .map((match) => match[1]);
+    if (cliReferences.length !== 1 || !new RegExp(`^${DELIVERY_WORKFLOW_PREFIX}[0-9a-f]{40}$`, 'u').test(cliReferences[0])) {
+      issues.push(`The release workflow must call ${DELIVERY_WORKFLOW_PREFIX}<full-lowercase-commit-sha>.`);
     }
     if (!/^\s{2}push:\s*$/mu.test(workflow) || !/^\s{2}pull_request:\s*$/mu.test(workflow)) {
       issues.push('The release workflow must run on both push and pull_request.');
